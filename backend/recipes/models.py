@@ -43,8 +43,9 @@ class Recipe(models.Model):
                                on_delete=models.CASCADE,
                                related_name='recipes')
     ingredients = models.ManyToManyField(Ingredient,
-                                         through='RecipeIngredient')
-    tags = models.ManyToManyField(Tag)
+                                         through='RecipeIngredient',
+                                         related_name='recipes')
+    tags = models.ManyToManyField(Tag, related_name='recipes')
     image = models.ImageField(upload_to='recipes/')
     name = models.CharField(max_length=200)
     text = models.TextField()
@@ -87,3 +88,9 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(User,
                                related_name='subscribers',
                                on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique_favorite')
+        ]
