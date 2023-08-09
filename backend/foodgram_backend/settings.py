@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-#k=f!!x$n(!dm506i3kqyk@d1(xw-xt#6thm85(p$t&$d0tl2b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost',]
 
 
 # Application definition
@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
 
     'users',
     'recipes',
@@ -120,3 +122,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
+DJOSER = {
+    "LOGIN_FIELD": "email",
+}
