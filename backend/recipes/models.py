@@ -2,6 +2,8 @@ from django.core.validators import RegexValidator, MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from colorfield.fields import ColorField
+
 UNIT_CHOICES = (
     ('кг', 'кг'),
     ('г', 'г'),
@@ -15,7 +17,7 @@ User = get_user_model()
 
 class Tag(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    color = models.CharField(max_length=7, unique=True)
+    color = ColorField()
     slug = models.SlugField(max_length=200,
                             unique=True,
                             validators=[
