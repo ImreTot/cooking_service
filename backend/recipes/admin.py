@@ -4,4 +4,14 @@ from .models import Tag, Ingredient, Recipe
 
 admin.site.register(Tag)
 admin.site.register(Ingredient)
-admin.site.register(Recipe)
+
+
+class IngredientInlineAdmin(admin.TabularInline):
+    model = Recipe.ingredients.through
+
+
+class RecipeAdmin(admin.ModelAdmin):
+    inlines = (IngredientInlineAdmin,)
+
+
+admin.site.register(Recipe, RecipeAdmin)

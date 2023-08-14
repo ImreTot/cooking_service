@@ -9,7 +9,10 @@ UNIT_CHOICES = (
     ('г', 'г'),
     ('мл', 'мл'),
     ('л', 'л'),
-    ('шт', 'шт'),
+    ('шт.', 'шт.'),
+    ('ст. л.', 'ст. л.'),
+    ('д. л.', 'д. л.'),
+    ('ч. л.', 'ч. л.'),
 )
 
 User = get_user_model()
@@ -33,8 +36,6 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
-    measurement_unit = models.CharField(max_length=200,
-                                        choices=UNIT_CHOICES)
 
     def __str__(self):
         return self.name
@@ -64,8 +65,8 @@ class Recipe(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.DecimalField(max_digits=6, decimal_places=2)
-    unit = models.CharField(max_length=10)
+    quantity = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
+    unit = models.CharField(blank=True, null=True, max_length=200, choices=UNIT_CHOICES)
 
 
 class Subscription(models.Model):
