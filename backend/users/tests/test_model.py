@@ -22,8 +22,8 @@ class CustomUserModelTest(TestCase):
         self.assertEqual(self.first_user.last_name, self.user_data['last_name'])
         self.assertTrue(self.first_user.is_active)
         self.assertFalse(self.first_user.is_admin)
-        self.assertTrue(self.first_user.has_perm)
-        self.assertTrue(self.first_user.has_module_perms)
+        self.assertTrue(self.first_user.has_perm('some_permission'))
+        self.assertTrue(self.first_user.has_module_perms('some_app_label'))
         self.assertFalse(self.first_user.is_staff)
 
     def test_create_superuser(self):
@@ -38,8 +38,8 @@ class CustomUserModelTest(TestCase):
         self.assertEqual(str(admin), user_data['email'])
         self.assertTrue(admin.is_active)
         self.assertTrue(admin.is_admin)
-        self.assertTrue(admin.has_perm)
-        self.assertTrue(admin.has_module_perms)
+        self.assertTrue(admin.has_perm('some_permission'))
+        self.assertTrue(admin.has_module_perms('some_app_label'))
         self.assertTrue(admin.is_staff)
 
     def test_username_unique(self):
