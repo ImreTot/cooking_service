@@ -36,6 +36,10 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
+    measurement_unit = models.CharField(blank=True,
+                            null=True,
+                            max_length=200,
+                            choices=UNIT_CHOICES)
 
     def __str__(self):
         return self.name
@@ -65,8 +69,7 @@ class Recipe(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
-    unit = models.CharField(blank=True, null=True, max_length=200, choices=UNIT_CHOICES)
+    amount = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
 
 
 class Subscription(models.Model):
@@ -86,7 +89,7 @@ class Subscription(models.Model):
 
 class Favorite(models.Model):
     user = models.ForeignKey(User,
-                             related_name='favourites',
+                             related_name='favorites',
                              on_delete=models.CASCADE)
     recipe = models.ForeignKey(User,
                                related_name='subscribers',

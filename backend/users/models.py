@@ -35,6 +35,10 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser):
+    """
+    Custom user model creates users instance
+    with loging by email instead of username.
+    """
     email = models.EmailField('email address',
                               max_length=255,
                               unique=True)
