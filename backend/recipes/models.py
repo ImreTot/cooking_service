@@ -49,10 +49,8 @@ class Recipe(models.Model):
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
                                related_name='recipes')
-    ingredients = models.ManyToManyField(Ingredient,
-                                         through='RecipeIngredient',
-                                         related_name='recipes')
     tags = models.ManyToManyField(Tag, related_name='recipes')
+    ingredients = models.ManyToManyField(Ingredient, related_name='recipe', through='RecipeIngredient')
     image = models.ImageField(upload_to='recipes/')
     name = models.CharField(max_length=200)
     text = models.TextField()
@@ -67,33 +65,37 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient,
+                                   related_name='recipes',
+                                   on_delete=models.CASCADE)
     amount = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
 
 
 class Subscription(models.Model):
-    user = models.ForeignKey(User,
-                             related_name='follower',
-                             on_delete=models.CASCADE)
-    author = models.ForeignKey(User,
-                               related_name='following',
-                               on_delete=models.CASCADE)
+    follower = models.ForeignKey(User,
+                                 related_name='subscriptions',
+                                 on_delete=models.CASCADE)
+    following = models.ForeignKey(User,
+                                  related_name='subscribers',
+                                  on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'author'],
+            models.UniqueConstraint(fields=['follower', 'following'],
                                     name='unique_subscription')
         ]
 
 
 class Favorite(models.Model):
     user = models.ForeignKey(User,
-                             related_name='favorites',
+                             related_name='favorite_recipes',
                              on_delete=models.CASCADE)
-    recipe = models.ForeignKey(User,
-                               related_name='subscribers',
+    recipe = models.ForeignKey(Recipe,
+                               related_name='favorited_by',
                                on_delete=models.CASCADE)
+
 
     class Meta:
         constraints = [

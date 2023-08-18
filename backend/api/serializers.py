@@ -1,11 +1,12 @@
-from djoser.serializers import UserCreateSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from recipes.models import Tag, Ingredient, Recipe, RecipeIngredient
+from recipes.models import (Tag, Ingredient, Recipe, RecipeIngredient,
+                            Favorite, Subscription)
 
 
-class CustomUserSerializer(UserCreateSerializer):
+class CustomUserCreateSerializer(UserCreateSerializer):
     """
     Custom user serializer replaces standard djoser serializer
     with additional fields 'first_name', 'last_name'.
@@ -14,6 +15,20 @@ class CustomUserSerializer(UserCreateSerializer):
         model = get_user_model()
         fields = ('email', 'id', 'password', 'username',
                   'first_name', 'last_name')
+
+
+class CustomUserSerializer(UserSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    class Meta:
+        model = get_user_model()
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'is_subscribed',)
+
+    def get_is_subscribed(self, obj):
+        request = self.context['request']
+        print(request)
+        user = request.user
+        return Subscription.objects.filter(follower=user, following=obj).exists()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -37,32 +52,47 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
     def get_amount(self, obj):
-        recipe = self.context.get('recipe')
-        recipe_ingredient = obj.recipeingredient_set.filter(recipe=recipe)
-        if recipe_ingredient:
-            return recipe_ingredient.amount
-        return None
+        recipe_ingredients = RecipeIngredient.objects.get(
+            recipe=self.context['recipe'],
+            ingredient=obj
+        )
+        return recipe_ingredients.amount
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
     ingredients = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'name', 'image', 'text', 'cooking_time')
+                  'is_favorited', 'name', 'image',
+                  'text', 'cooking_time')
+
+    def get_author(self, obj):
+        author = obj.author
+        author_serializer = CustomUserSerializer(
+            author,
+            context=self.context
+        )
+        return author_serializer.data
+
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         user = request.user
         if user.is_authenticated:
-            return obj.favorites.filter(user=user).exists()
+            return Favorite.objects.filter(user=user, recipe=obj).exists()
         return False
 
     def get_ingredients(self, obj):
-        ingredients = [rec_ing.ingredient for rec_ing in obj.recipeingredient_set.all()]
-        serializer = IngredientInRecipeSerializer(ingredients, many=True, context=self.context)
-        print(ingredients)
+        ingredients = obj.ingredients.all()
+        self.context['recipe'] = obj
+        serializer = IngredientInRecipeSerializer(
+            ingredients,
+            many=True,
+            context=self.context
+        )
         return serializer.data
