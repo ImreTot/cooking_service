@@ -14,7 +14,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
     with additional fields 'first_name', 'last_name'.
     """
     class Meta:
-        model = get_user_model()
+        model = User
         fields = ('email', 'id', 'password', 'username',
                   'first_name', 'last_name')
 
@@ -22,7 +22,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
     class Meta:
-        model = get_user_model()
+        model = User
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name', 'is_subscribed',)
 
@@ -33,7 +33,28 @@ class CustomUserSerializer(UserSerializer):
         return Subscription.objects.filter(
             follower=user, following=obj).exists()
 
-        
+
+class SubscriptionSerializer(CustomUserSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed',
+                  'recipes', 'recipes_count')
+
+    def get_recipes(self, obj):
+        recipes = obj.recipes
+        serializer = RecipeInSubscriptionSerializer(recipes, many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        recipes = obj.recipes
+        recipes_numbers = recipes.count()
+        return recipes_numbers
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -112,3 +133,11 @@ class RecipeSerializer(serializers.ModelSerializer):
                 user=user, recipe=obj
             ).exists()
         return False
+
+
+class RecipeInSubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+        read_only = '__all__'

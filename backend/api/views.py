@@ -2,20 +2,20 @@ from django.contrib.auth import get_user_model
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from .serializers import (TagSerializer, IngredientSerializer,
-                          RecipeSerializer, CustomUserSerializer)
+                          RecipeSerializer, CustomUserSerializer,
+                          SubscriptionSerializer)
 from recipes.models import Tag, Ingredient, Recipe
 
 User = get_user_model()
 
 
 class SubscriptionViewSet(ReadOnlyModelViewSet):
-    serializer_class = CustomUserSerializer
+    serializer_class = SubscriptionSerializer
 
     def get_queryset(self):
         user = self.request.user
         subscribed_users = User.objects.filter(subscriptions__following=user)
         return subscribed_users
-
 
 
 class TagViewSet(ReadOnlyModelViewSet):
