@@ -28,15 +28,18 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context['request']
-        print(request)
         user = request.user
         return Subscription.objects.filter(
             follower=user, following=obj).exists()
 
 
 class SubscriptionSerializer(CustomUserSerializer):
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    email = serializers.ReadOnlyField()
+    username = serializers.ReadOnlyField()
+    first_name = serializers.ReadOnlyField()
+    last_name = serializers.ReadOnlyField()
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -45,12 +48,12 @@ class SubscriptionSerializer(CustomUserSerializer):
                   'recipes', 'recipes_count')
 
     def get_recipes(self, obj):
-        recipes = obj.recipes
+        recipes = obj.recipes.all()
         serializer = RecipeInSubscriptionSerializer(recipes, many=True)
         return serializer.data
 
     def get_recipes_count(self, obj):
-        recipes = obj.recipes
+        recipes = obj.recipes.all()
         recipes_numbers = recipes.count()
         return recipes_numbers
 
@@ -84,7 +87,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True)
+    tags = serializers.SerializerMethodField()
     author = serializers.SerializerMethodField()
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
@@ -100,6 +103,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user
         return user
+
+    def get_tags(self, obj):
+        if self.context['request'].method == 'POST':
+            return [tag.id for tag in obj.tags.all()]
+        tags = TagSerializer(obj.tags.all(), many=True)
+        return tags.data
+
 
     def get_author(self, obj):
         author = obj.author
