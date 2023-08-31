@@ -50,7 +50,6 @@ class Recipe(models.Model):
                                on_delete=models.CASCADE,
                                related_name='recipes')
     tags = models.ManyToManyField(Tag, related_name='recipes')
-    ingredients = models.ManyToManyField(Ingredient, related_name='recipe', through='RecipeIngredient')
     image = models.ImageField(upload_to='recipes/')
     name = models.CharField(max_length=200)
     text = models.TextField()
@@ -66,11 +65,15 @@ class Recipe(models.Model):
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe,
-                               on_delete=models.CASCADE)
+                               on_delete=models.CASCADE,
+                               related_name='ingredients')
     ingredient = models.ForeignKey(Ingredient,
                                    related_name='recipes',
                                    on_delete=models.CASCADE)
-    amount = models.DecimalField(blank=True, null=True, max_digits=6, decimal_places=2)
+    amount = models.DecimalField(blank=True,
+                                 null=True,
+                                 max_digits=6,
+                                 decimal_places=2)
 
 
 class Subscription(models.Model):
