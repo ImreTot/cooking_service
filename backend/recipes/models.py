@@ -38,8 +38,7 @@ class Ingredient(models.Model):
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField(blank=True,
                             null=True,
-                            max_length=200,
-                            choices=UNIT_CHOICES)
+                            max_length=200)
 
     def __str__(self):
         return self.name
@@ -59,6 +58,9 @@ class Recipe(models.Model):
     publication_date = models.DateTimeField(auto_now_add=True,
                                             db_index=True)
 
+    class Meta:
+        ordering = ['-publication_date']
+
     def __str__(self):
         return self.name
 
@@ -70,10 +72,8 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(Ingredient,
                                    related_name='recipes',
                                    on_delete=models.CASCADE)
-    amount = models.DecimalField(blank=True,
-                                 null=True,
-                                 max_digits=6,
-                                 decimal_places=2)
+    amount = models.PositiveIntegerField(blank=True,
+                                         null=True)
 
 
 class Subscription(models.Model):

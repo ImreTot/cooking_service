@@ -1,10 +1,12 @@
 from django.contrib import admin
 
 from .models import (Tag, Ingredient, Recipe, RecipeIngredient,
-                     Subscription)
+                     Subscription, Favorite, ShoppingCart)
 
 admin.site.register(Tag)
 admin.site.register(Subscription)
+admin.site.register(Favorite)
+admin.site.register(ShoppingCart)
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -14,6 +16,7 @@ class RecipeIngredientInline(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline,)
+    list_display = ['id', 'name']
 
 
 class IngredientAdmin(admin.ModelAdmin):

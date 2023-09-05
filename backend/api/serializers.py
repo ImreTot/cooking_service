@@ -30,6 +30,8 @@ class CustomUserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         request = self.context['request']
         user = request.user
+        if not user.is_authenticated:
+            return False
         return Subscription.objects.filter(
             follower=user, following=obj).exists()
 
@@ -162,7 +164,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         image = validated_data.pop('image')
-        ingredients_data = validated_data.pop('ingredients')
+        ingredients_data = self.initial_data.pop('ingredients', '')
         recipe = Recipe.objects.create(image=image, **validated_data)
         tags_data = self.initial_data.get('tags')
         recipe.tags.set(tags_data)
