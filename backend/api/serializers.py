@@ -1,19 +1,15 @@
-from drf_extra_fields.fields import Base64ImageField
-from djoser.serializers import UserCreateSerializer, UserSerializer
 from django.contrib.auth import get_user_model
+from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import (Tag, Ingredient, Recipe, RecipeIngredient,
-                            Favorite, Subscription, ShoppingCart)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Subscription, Tag)
 
 User = get_user_model()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
-    """
-    Custom user serializer replaces standard djoser serializer
-    with additional fields 'first_name', 'last_name'.
-    """
     class Meta:
         model = User
         fields = ('email', 'id', 'password', 'username',
@@ -22,6 +18,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ('email', 'id', 'username',
@@ -57,8 +54,7 @@ class SubscriptionSerializer(CustomUserSerializer):
 
     def get_recipes_count(self, obj):
         recipes = obj.recipes.all()
-        recipes_numbers = recipes.count()
-        return recipes_numbers
+        return recipes.count()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -78,7 +74,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
     measurement_unit = serializers.SerializerMethodField()
-
 
     class Meta:
         model = RecipeIngredient
@@ -110,8 +105,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_user(self):
         request = self.context.get('request')
-        user = request.user
-        return user
+        return request.user
 
     def get_tags(self, recipe):
         if self.context['request'].method in ['POST', 'PATCH']:
@@ -155,12 +149,13 @@ class RecipeSerializer(serializers.ModelSerializer):
     def update_or_create_ingredient_amount(self, validated_data, recipe):
         if not validated_data:
             raise serializers.ValidationError({
-                'ingredients': 'Requires at least one ingredient for the recipe.'})
+                'ingredients':
+                    'Requires at least one ingredient for the recipe.'})
         for ingredient in validated_data:
-            RecipeIngredient.objects.update_or_create(ingredient_id=ingredient['id'],
-                                                      amount=ingredient['amount'],
-                                                      recipe=recipe)
-
+            RecipeIngredient.objects.update_or_create(
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount'],
+                recipe=recipe)
 
     def create(self, validated_data):
         image = validated_data.pop('image')
@@ -182,7 +177,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags_data = self.initial_data.get('tags')
         instance.tags.set(tags_data)
         RecipeIngredient.objects.filter(recipe=instance).all().delete()
-        self.update_or_create_ingredient_amount(self.initial_data.get('ingredients'), instance)
+        self.update_or_create_ingredient_amount(
+            self.initial_data.get('ingredients'), instance)
         instance.save()
         return instance
 

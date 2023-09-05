@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 
 from .models import CustomUser
@@ -46,7 +46,6 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-
     list_display = ['id', 'email', 'username', 'first_name',
                     'last_name', 'is_admin']
     list_filter = ['is_admin']
@@ -61,7 +60,8 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 'classes': ['wide'],
-                'fields': ['email', 'username', 'first_name', 'last_name', 'password1', 'password2'],
+                'fields': ['email', 'username', 'first_name',
+                           'last_name', 'password1', 'password2'],
             },
         ),
     ]

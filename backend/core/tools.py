@@ -1,17 +1,20 @@
 import os
+
 from django.conf import settings
 from django.http import HttpResponse
-from rest_framework.generics import get_object_or_404
-from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from rest_framework.generics import get_object_or_404
 
 from recipes.models import Recipe
+
 
 def get_user_and_recipe_or_404(request, pk):
     user = request.user
     recipe = get_object_or_404(Recipe, id=pk)
     return user, recipe
+
 
 def generate_ingredients_list_via_pdf(ingredient_list):
     font_path = os.path.join(settings.FONT_ROOT, 'Zekton.ttf')
@@ -33,6 +36,7 @@ def generate_ingredients_list_via_pdf(ingredient_list):
     page.save()
     return response
 
+
 def form_ingredients_list(queryset):
     ingredient_list = {}
     for item in queryset:
@@ -44,5 +48,4 @@ def form_ingredients_list(queryset):
             }
         else:
             ingredient_list[name]['amount'] += item[2]
-    print(ingredient_list)
     return ingredient_list

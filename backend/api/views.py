@@ -1,31 +1,26 @@
-from django.shortcuts import get_list_or_404
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from django.shortcuts import get_list_or_404
 from djoser.views import UserViewSet
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .serializers import (TagSerializer, IngredientSerializer,
-                          RecipeSerializer, SubscriptionSerializer,
-                          RecipeInSubscriptionSerializer)
-from recipes.models import (Tag, Ingredient, Recipe, Subscription,
-                            Favorite, ShoppingCart, RecipeIngredient)
-
-from core.tools import (get_user_and_recipe_or_404,
+from core.tools import (form_ingredients_list,
                         generate_ingredients_list_via_pdf,
-                        form_ingredients_list)
-
+                        get_user_and_recipe_or_404)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Subscription, Tag)
 from .filters import RecipeFilter
+from .serializers import (IngredientSerializer, RecipeInSubscriptionSerializer,
+                          RecipeSerializer, SubscriptionSerializer,
+                          TagSerializer)
 
 User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-
-
     @action(methods=['get'], detail=False,
             permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
@@ -34,20 +29,21 @@ class CustomUserViewSet(UserViewSet):
         paginator = self.paginate_queryset(queryset)
         serializer = SubscriptionSerializer(paginator,
                                             many=True,
-                                            context={'request':
-                                                         request})
+                                            context={'request': request})
         return self.get_paginated_response(serializer.data)
 
     @action(methods=['post'], detail=True)
     def subscribe(self, request, id):
         user = request.user
         follower = self.get_object()
-        if Subscription.objects.filter(follower=user, following_id=id).exists():
+        if Subscription.objects.filter(
+                follower=user,
+                following_id=id).exists():
             return Response(
                 {'error': 'Subscription is already exists.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        elif user==follower:
+        if user == follower:
             return Response(
                 {'error': 'You can\'t subscribe to yourself.'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -86,8 +82,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    # filter_backend = DjangoFilterBackend
-    # filterset_fields = ['author', 'tags__slug']
     filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
@@ -123,7 +117,7 @@ class RecipeViewSet(ModelViewSet):
             )
 
     @action(methods=['post'], detail=True,
-                permission_classes=[IsAuthenticated])
+            permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk):
         user, recipe = get_user_and_recipe_or_404(request, pk)
         recipe_in_shopping_cart = ShoppingCart.objects.filter(
@@ -149,8 +143,10 @@ class RecipeViewSet(ModelViewSet):
             recipe=recipe
         )
         if not recipe_in_shopping_cart.exists():
-            return Response({'error': 'This recipe is not in the shopping_cart'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'error': 'This recipe is not in the shopping_cart'
+            },
+                status=status.HTTP_400_BAD_REQUEST)
         recipe_in_shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -1,6 +1,6 @@
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.db import models
 
 
 class CustomUserManager(BaseUserManager):
@@ -35,19 +35,15 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser):
-    """
-    Custom user model creates users instance
-    with loging by email instead of username.
-    """
     email = models.EmailField('email address',
                               max_length=255,
                               unique=True)
     username = models.CharField(
         max_length=150,
         unique=True,
-        help_text=(f'Required. '
-                   f'150 characters or fewer. '
-                   f'Letters, digits and @/./+/-/_ only.'),
+        help_text=('Required. '
+                   '150 characters or fewer. '
+                   'Letters, digits and @/./+/-/_ only.'),
         validators=[UnicodeUsernameValidator],
         error_messages={
             'unique': 'A user with that username already exists.',

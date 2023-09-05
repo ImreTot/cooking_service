@@ -1,19 +1,7 @@
-from django.core.validators import RegexValidator, MinValueValidator
-from django.contrib.auth import get_user_model
-from django.db import models
-
 from colorfield.fields import ColorField
-
-UNIT_CHOICES = (
-    ('кг', 'кг'),
-    ('г', 'г'),
-    ('мл', 'мл'),
-    ('л', 'л'),
-    ('шт.', 'шт.'),
-    ('ст. л.', 'ст. л.'),
-    ('д. л.', 'д. л.'),
-    ('ч. л.', 'ч. л.'),
-)
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, RegexValidator
+from django.db import models
 
 User = get_user_model()
 
@@ -37,8 +25,8 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField(blank=True,
-                            null=True,
-                            max_length=200)
+                                        null=True,
+                                        max_length=200)
 
     def __str__(self):
         return self.name
@@ -98,7 +86,6 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(Recipe,
                                related_name='favorited_by',
                                on_delete=models.CASCADE)
-
 
     class Meta:
         constraints = [models.UniqueConstraint(
