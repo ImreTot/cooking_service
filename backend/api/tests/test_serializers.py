@@ -1,6 +1,8 @@
 from django.test import TestCase
-from recipes.models import Tag
+
 from api.serializers import TagSerializer
+from recipes.models import Tag
+
 
 class TagSerializerTest(TestCase):
 

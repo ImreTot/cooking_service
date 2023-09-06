@@ -1,7 +1,8 @@
 from django.test import TestCase
 
-from recipes.models import Tag, Ingredient, Recipe
+from recipes.models import Ingredient, Recipe, Tag
 from users.models import CustomUser
+
 
 class RecipeModelsTest(TestCase):
     @classmethod
