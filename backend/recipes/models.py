@@ -12,10 +12,10 @@ class Tag(models.Model):
     slug = models.SlugField(max_length=200,
                             unique=True,
                             validators=[
-                               RegexValidator(
-                                   regex=r'^[-a-zA-Z0-9_]+$',
-                                   message='Invalid slug.'
-                               )
+                                RegexValidator(
+                                    regex=r'^[-a-zA-Z0-9_]+$',
+                                    message='Invalid slug.'
+                                )
                             ])
 
     def __str__(self):
