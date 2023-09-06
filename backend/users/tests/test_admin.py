@@ -1,5 +1,7 @@
 from django.test import TestCase
+
 from users.admin import UserCreationForm
+
 
 class UserCreationFormTest(TestCase):
 

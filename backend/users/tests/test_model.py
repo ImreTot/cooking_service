@@ -1,5 +1,5 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 
 
 class CustomUserModelTest(TestCase):
@@ -45,7 +45,7 @@ class CustomUserModelTest(TestCase):
         Custom model creates superuser instance with correct data.
         """
         user_data = self.user_data.copy()
-        user_data['email']  = 'admin_test@example.com'
+        user_data['email'] = 'admin_test@example.com'
         user_data['username'] = 'admin_testuser'
         admin = self.User.objects.create_superuser(**user_data)
         fields_titles = {
@@ -77,7 +77,7 @@ class CustomUserModelTest(TestCase):
         second_user_data = self.user_data.copy()
         second_user_data['email'] = 'another@example.com'
         with self.assertRaises(Exception):
-            user2 = self.User.objects.create_user(**second_user_data)
+            self.User.objects.create_user(**second_user_data)
 
     def test_email_unique(self):
         """
@@ -86,7 +86,7 @@ class CustomUserModelTest(TestCase):
         second_user_data = self.user_data.copy()
         second_user_data['username'] = 'anotheruser'
         with self.assertRaises(Exception):
-            user2 = self.User.objects.create_user(**second_user_data)
+            self.User.objects.create_user(**second_user_data)
 
     def test_create_user_with_missing_email(self):
         """
@@ -95,5 +95,6 @@ class CustomUserModelTest(TestCase):
         user_data = self.user_data.copy()
         user_data['email'], user_data['username'] = '', 'testuser2'
         with self.assertRaises(ValueError) as context:
-            user = self.User.objects.create_user(**user_data)
-        self.assertIn('Users must have an email address', str(context.exception))
+            self.User.objects.create_user(**user_data)
+        self.assertIn('Users must have an email address',
+                      str(context.exception))

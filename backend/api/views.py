@@ -112,9 +112,9 @@ class RecipeViewSet(ModelViewSet):
             favorite_recipe.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
-                {'error': 'This recipe is not in the favorites list'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            {'error': 'This recipe is not in the favorites list'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(methods=['post'], detail=True,
             permission_classes=[IsAuthenticated])
