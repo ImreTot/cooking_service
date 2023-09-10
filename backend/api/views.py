@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_list_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -21,6 +21,7 @@ User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
     @action(methods=['get'], detail=False,
             permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
@@ -35,35 +36,23 @@ class CustomUserViewSet(UserViewSet):
     @action(methods=['post'], detail=True)
     def subscribe(self, request, id):
         user = request.user
-        follower = self.get_object()
-        if Subscription.objects.filter(
-                follower=user,
-                following_id=id).exists():
-            return Response(
-                {'error': 'Subscription is already exists.'},
-                status=status.HTTP_400_BAD_REQUEST
+        following = self.get_object()
+        serializer = SubscriptionSerializer(following)
+        if serializer.validate(request={'request': request}):
+            Subscription.objects.create(
+                following_id=id,
+                follower=user
             )
-        if user == follower:
-            return Response(
-                {'error': 'You can\'t subscribe to yourself.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        Subscription.objects.create(
-            following_id=id,
-            follower=user
-        )
-        serializer = SubscriptionSerializer(
-            follower,
-            context={'request': request}
-        )
-        return Response(serializer.data, status.HTTP_201_CREATED)
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
         user = request.user
-        Subscription.objects.get(
-            following=id,
-            follower=user).delete()
+        subscription = get_object_or_404(Subscription,
+                                         following=id,
+                                         follower=user)
+        subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -91,23 +80,16 @@ class RecipeViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk):
         user, recipe = get_user_and_recipe_or_404(request, pk)
-        if Favorite.objects.filter(user=user.id, recipe=recipe.id).exists():
-            return Response(
-                {'error': 'This recipe is already in favorites.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        Favorite.objects.create(user=user, recipe=recipe)
-        serializer = RecipeInSubscriptionSerializer(
-            recipe,
-            context={'request': request}
-        )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = RecipeInSubscriptionSerializer(recipe)
+        if serializer.validate(request={'request': request}):
+            Favorite.objects.create(user=user, recipe=recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @favorite.mapping.delete
     def remove_from_favorite(self, request, pk):
         user, recipe = get_user_and_recipe_or_404(request, pk)
-        favorite_recipe = Favorite.objects.filter(
-            user=user.id, recipe=recipe.id)
+        favorite_recipe = user.favorite_recipes.filter(recipe=recipe)
         if favorite_recipe.exists():
             favorite_recipe.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -120,8 +102,7 @@ class RecipeViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk):
         user, recipe = get_user_and_recipe_or_404(request, pk)
-        recipe_in_shopping_cart = ShoppingCart.objects.filter(
-            user=user,
+        recipe_in_shopping_cart = user.recipes_in_shopping_cart.filter(
             recipe=recipe
         )
         if recipe_in_shopping_cart.exists():
@@ -138,8 +119,7 @@ class RecipeViewSet(ModelViewSet):
     @shopping_cart.mapping.delete
     def remove_from_shopping_cart(self, request, pk):
         user, recipe = get_user_and_recipe_or_404(request, pk)
-        recipe_in_shopping_cart = ShoppingCart.objects.filter(
-            user=user,
+        recipe_in_shopping_cart = user.recipes_in_shopping_cart.filter(
             recipe=recipe
         )
         if not recipe_in_shopping_cart.exists():

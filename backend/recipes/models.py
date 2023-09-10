@@ -1,7 +1,10 @@
 from colorfield.fields import ColorField
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator, RegexValidator, MaxValueValidator
 from django.db import models
+
+MIN_VALUE = 1
+MAX_VALUE = 32000
 
 User = get_user_model()
 
@@ -18,6 +21,9 @@ class Tag(models.Model):
                                 )
                             ])
 
+    class Meta:
+        ordering = ['-slug']
+
     def __str__(self):
         return self.name
 
@@ -27,6 +33,9 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(blank=True,
                                         null=True,
                                         max_length=200)
+
+    class Meta:
+        ordering = ['-name']
 
     def __str__(self):
         return self.name
@@ -40,8 +49,11 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to='recipes/')
     name = models.CharField(max_length=200)
     text = models.TextField()
-    cooking_time = models.PositiveIntegerField(validators=[
-        MinValueValidator(limit_value=1, message='Too little time.')
+    cooking_time = models.PositiveSmallIntegerField(validators=[
+        MinValueValidator(limit_value=MIN_VALUE,
+                          message='Too short a period of time.'),
+        MaxValueValidator(limit_value=MAX_VALUE,
+                          message='Too long a period of time.')
     ])
     publication_date = models.DateTimeField(auto_now_add=True,
                                             db_index=True)
@@ -60,8 +72,18 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(Ingredient,
                                    related_name='recipes',
                                    on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField(blank=True,
-                                         null=True)
+    amount = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        validators=[
+            MaxValueValidator(limit_value=MAX_VALUE,
+                              message='Amount value is too high.'),
+            MinValueValidator(limit_value=MIN_VALUE,
+                              message='Amount value is too small')
+        ])
+
+    class Meta:
+        ordering = ['-recipe']
 
 
 class Subscription(models.Model):
@@ -77,6 +99,7 @@ class Subscription(models.Model):
             models.UniqueConstraint(fields=['follower', 'following'],
                                     name='unique_subscription')
         ]
+        ordering = ['-follower']
 
 
 class Favorite(models.Model):
@@ -92,6 +115,7 @@ class Favorite(models.Model):
             fields=['user', 'recipe'],
             name='unique_favorite'
         )]
+        ordering = ['-user']
 
 
 class ShoppingCart(models.Model):
@@ -107,3 +131,4 @@ class ShoppingCart(models.Model):
             fields=['user', 'recipe'],
             name='unique_recipe_for_shopping'
         )]
+        ordering = ['-user']

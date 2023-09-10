@@ -1,0 +1,5 @@
+.venv
+.git
+.coverage
+htmlcov
+db.sqlite3
