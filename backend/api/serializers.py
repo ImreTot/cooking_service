@@ -4,8 +4,8 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Subscription, Tag)
+from recipes.models import (Ingredient, Recipe,
+                            RecipeIngredient, Tag)
 
 MIN_VALUE = 1
 MAX_VALUE = 32000
@@ -170,6 +170,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         image = validated_data.pop('image')
         ingredients_data = self.initial_data.pop('ingredients', '')
+        validated_data.pop('ingredients', '')
         recipe = Recipe.objects.create(image=image, **validated_data)
         tags_data = self.initial_data.get('tags')
         recipe.tags.set(tags_data)

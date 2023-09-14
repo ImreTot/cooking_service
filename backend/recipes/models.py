@@ -22,7 +22,7 @@ class Tag(models.Model):
                             ])
 
     class Meta:
-        ordering = ['-slug']
+        ordering = ['slug']
 
     def __str__(self):
         return self.name
@@ -35,7 +35,7 @@ class Ingredient(models.Model):
                                         max_length=200)
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['name']
 
     def __str__(self):
         return self.name

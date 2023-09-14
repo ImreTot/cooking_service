@@ -1,18 +1,19 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_list_or_404, get_object_or_404
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from core.tools import (form_ingredients_list,
                         generate_ingredients_list_via_pdf,
                         get_user_and_recipe_or_404)
+from .pagination import PageLimitPagination
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Subscription, Tag)
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientSearchFilter
 from .serializers import (IngredientSerializer, RecipeInSubscriptionSerializer,
                           RecipeSerializer, SubscriptionSerializer,
                           TagSerializer)
@@ -21,23 +22,24 @@ User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    @action(methods=['get'], detail=False,
-            permission_classes=[IsAuthenticated])
+    pagination_class = PageLimitPagination
+
+    @action(methods=['get'], detail=False)
     def subscriptions(self, request):
-        user = request.user
-        queryset = get_list_or_404(User, subscribers__follower=user)
-        paginator = self.paginate_queryset(queryset)
+        paginator = self.paginate_queryset(
+            User.objects.filter(subscribers__follower=self.request.user)
+        )
         serializer = SubscriptionSerializer(paginator,
                                             many=True,
-                                            context={'request': request})
+                                            context={'request': self.request})
         return self.get_paginated_response(serializer.data)
 
     @action(methods=['post'], detail=True)
     def subscribe(self, request, id):
         user = request.user
         following = self.get_object()
-        serializer = SubscriptionSerializer(following)
+        serializer = SubscriptionSerializer(following,
+                                            context={'request': request})
         if serializer.validate(request={'request': request}):
             Subscription.objects.create(
                 following_id=id,
@@ -66,6 +68,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name',)
 
 
 class RecipeViewSet(ModelViewSet):
