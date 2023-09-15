@@ -37,7 +37,7 @@ def generate_ingredients_list_via_pdf(ingredient_list):
     height = HEIGHT
     for i, (name, data) in enumerate(ingredient_list.items(), 1):
         page.drawString(LENGTH, height, (f'{i}. {name} - {data["amount"]}, '
-                                     f'{data["measurement_unit"]}'))
+                                         f'{data["measurement_unit"]}'))
         height -= 25
     page.showPage()
     page.save()

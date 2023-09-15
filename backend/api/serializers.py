@@ -56,7 +56,9 @@ class SubscriptionSerializer(CustomUserSerializer):
         if user.subscriptions.filter(following=following).exists():
             raise ValidationError({'error': 'Subscription is already exists.'})
         if user == following:
-            raise ValidationError({'error': 'You can\'t subscribe to yourself.'})
+            raise ValidationError(
+                {'error': 'You can\'t subscribe to yourself.'}
+            )
         return request
 
     def get_recipes(self, obj):
@@ -136,7 +138,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             context=self.context
         )
         return author_serializer.data
-
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
