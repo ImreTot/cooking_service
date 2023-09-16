@@ -11,12 +11,13 @@ from core.tools import (form_ingredients_list,
                         generate_ingredients_list_via_pdf,
                         get_user_and_recipe_or_404)
 from .pagination import PageLimitPagination
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+from recipes.models import (Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Subscription, Tag)
 from .filters import RecipeFilter, IngredientSearchFilter
-from .serializers import (IngredientSerializer, RecipeInSubscriptionSerializer,
-                          RecipeSerializer, SubscriptionSerializer,
-                          TagSerializer)
+from .serializers import (IngredientSerializer, RecipeInFavoriteSerializer,
+                          RecipeSerializer, ShortSubscriptionSerializer,
+                          ShortRecipeInFavoriteSerializer,
+                          SubscriptionSerializer, TagSerializer)
 
 User = get_user_model()
 
@@ -24,7 +25,8 @@ User = get_user_model()
 class CustomUserViewSet(UserViewSet):
     pagination_class = PageLimitPagination
 
-    @action(methods=['get'], detail=False)
+    @action(methods=['get'], detail=False,
+            permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         paginator = self.paginate_queryset(
             User.objects.filter(subscribers__follower=self.request.user)
@@ -34,19 +36,17 @@ class CustomUserViewSet(UserViewSet):
                                             context={'request': self.request})
         return self.get_paginated_response(serializer.data)
 
-    @action(methods=['post'], detail=True)
+    @action(methods=['post'], detail=True,
+            permission_classes=[IsAuthenticated])
     def subscribe(self, request, id):
-        user = request.user
-        following = self.get_object()
-        serializer = SubscriptionSerializer(following,
-                                            context={'request': request})
-        if serializer.validate(request={'request': request}):
-            Subscription.objects.create(
-                following_id=id,
-                follower=user
-            )
-            return Response(serializer.data, status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = {'follower': request.user.id,
+                'following': self.get_object().id}
+        serializer = ShortSubscriptionSerializer(
+            data=data,
+            context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
@@ -83,12 +83,16 @@ class RecipeViewSet(ModelViewSet):
     @action(methods=['post'], detail=True,
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk):
-        user, recipe = get_user_and_recipe_or_404(request, pk)
-        serializer = RecipeInSubscriptionSerializer(recipe)
-        if serializer.validate(request={'request': request}):
-            Favorite.objects.create(user=user, recipe=recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        recipe = self.get_object()
+        data = {'user': user.id,
+                'recipe': recipe.id}
+        serializer = ShortRecipeInFavoriteSerializer(
+            data=data,
+            context={'request': self.request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @favorite.mapping.delete
     def remove_from_favorite(self, request, pk):
@@ -115,7 +119,7 @@ class RecipeViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         ShoppingCart.objects.create(user=user, recipe=recipe)
-        serializer = RecipeInSubscriptionSerializer(
+        serializer = RecipeInFavoriteSerializer(
             recipe, context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)

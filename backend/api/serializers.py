@@ -5,7 +5,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import (Ingredient, Recipe,
-                            RecipeIngredient, Tag)
+                            RecipeIngredient, Tag,
+                            Subscription, Favorite)
 
 MIN_VALUE = 1
 MAX_VALUE = 32000
@@ -33,6 +34,7 @@ class CustomUserSerializer(UserSerializer):
         user = request.user
         if not user.is_authenticated:
             return False
+        print(obj)
         return user.subscriptions.filter(following=obj).exists()
 
 
@@ -50,25 +52,48 @@ class SubscriptionSerializer(CustomUserSerializer):
                   'last_name', 'is_subscribed',
                   'recipes', 'recipes_count')
 
-    def validate(self, request):
-        user = request['request'].user
-        following = self.instance
-        if user.subscriptions.filter(following=following).exists():
-            raise ValidationError({'error': 'Subscription is already exists.'})
-        if user == following:
-            raise ValidationError(
-                {'error': 'You can\'t subscribe to yourself.'}
-            )
-        return request
+    # def validate(self, request):
+    #     user = request['request'].user
+    #     following = self.instance
+    #     if user.subscriptions.filter(following=following).exists():
+    #         raise ValidationError({'error': 'Subscription is already exists.'})
+    #     if user == following:
+    #         raise ValidationError(
+    #             {'error': 'You can\'t subscribe to yourself.'}
+    #         )
+    #     return request
 
     def get_recipes(self, obj):
         recipes = obj.recipes.all()
-        serializer = RecipeInSubscriptionSerializer(recipes, many=True)
+        serializer = RecipeInFavoriteSerializer(recipes, many=True)
         return serializer.data
 
     def get_recipes_count(self, obj):
         recipes = obj.recipes.all()
         return recipes.count()
+
+
+class ShortSubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subscription
+        fields = ('follower', 'following')
+
+    def validate(self, data):
+        follower = data.get('follower')
+        following = data.get('following')
+        if follower.subscriptions.filter(following=following).exists():
+            raise ValidationError({'error': 'Subscription is already exists.'})
+        if follower == following:
+            raise ValidationError(
+                {'error': 'You can\'t subscribe to yourself.'}
+            )
+        return data
+
+    def to_representation(self, instance):
+        return SubscriptionSerializer(instance.following, context={
+            'request': self.context.get('request')
+        }).data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -195,17 +220,30 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
 
-class RecipeInSubscriptionSerializer(serializers.ModelSerializer):
+class RecipeInFavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only = '__all__'
 
-    def validate(self, request):
-        user = request['request'].user
-        recipe = self.instance
-        if recipe.favorited_by.filter(user=user).exists():
+
+class ShortRecipeInFavoriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe')
+
+    def validate(self, data):
+        user = data.get('user')
+        recipe = data.get('recipe')
+        if user.favorite_recipes.filter(recipe=recipe).exists():
             raise ValidationError(
-                {'error': 'This recipe is already in favorites.'})
-        return request
+                {'error': 'This recipe is already in favorites.'}
+            )
+        return data
+
+    def to_representation(self, instance):
+        return RecipeInFavoriteSerializer(instance.recipe, context={
+            'request': self.context.get('request')
+        }).data
