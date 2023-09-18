@@ -4,9 +4,8 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from recipes.models import (Ingredient, Recipe,
-                            RecipeIngredient, Tag,
-                            Subscription, Favorite)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            Subscription, Tag)
 
 MIN_VALUE = 1
 MAX_VALUE = 32000
@@ -34,7 +33,6 @@ class CustomUserSerializer(UserSerializer):
         user = request.user
         if not user.is_authenticated:
             return False
-        print(obj)
         return user.subscriptions.filter(following=obj).exists()
 
 
@@ -51,17 +49,6 @@ class SubscriptionSerializer(CustomUserSerializer):
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'is_subscribed',
                   'recipes', 'recipes_count')
-
-    # def validate(self, request):
-    #     user = request['request'].user
-    #     following = self.instance
-    #     if user.subscriptions.filter(following=following).exists():
-    #         raise ValidationError({'error': 'Subscription is already exists.'})
-    #     if user == following:
-    #         raise ValidationError(
-    #             {'error': 'You can\'t subscribe to yourself.'}
-    #         )
-    #     return request
 
     def get_recipes(self, obj):
         recipes = obj.recipes.all()

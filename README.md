@@ -1,5 +1,5 @@
 # Foodgram
-## _Delicious food without any gram of bullshits_
+## _Delicious food without any gram of rubbish_
 
 ### Powered by
 
@@ -15,12 +15,63 @@
 [![N|Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org)
 
 
-Проект доступен по адресу - https://recipesforworld.zapto.org/
+The project has been launched and is available at the following link - https://recipesforworld.zapto.org/
 
-Данные админа:
+## Данные для доступа в админку
 
-email - admin@admin.com
+- email - admin@admin.com
+- пароль - admin
 
-пароль - admin
+## Installation
 
+Feel free to install and explore this project.  
+If you want to get deep into code, you should clone repo. Run this command:
+```sh
+git clone git@github.com:ImreTot/foodgram-project-react.git
+```
+We recommend you to run frontend and nginx into docker containers. 
+In this case execute next command. Be sure you are in dir `/infra`:
+```shell
+docker compose up
+```
+However, you can run only backend by django server.
+At first, create in `backend/` directory virtual environment. 
+>We use `Python3.11`
+```shell
+python3.11 - m venv .venv
+```
+Then install requirements:
+```shell
+pip install -r requirements.txt
+```
+Another option is to run whole project using only docker features.
+In that case you need only `docker-compose.production.yml`. 
+Don't forget about creating `.env` file in the same directory.
+Here is the variables list:
 
+- DJANGO_SECRET_KEY
+- DJANGO_ALLOWED_HOSTS
+- CSRF_TRUSTED_ORIGINS
+- DEBUG
+- POSTGRES_USER
+- POSTGRES_PASSWORD
+- POSTGRES_DB
+- DB_HOST
+- DB_PORT
+
+## About me
+
+I'm Roman Kiyashko, python developer from south russian city.
+Also, I'm a journalist. 
+Technology, science, education, music and extreme sports - these are the four foundations of my productive work.  
+You can contact with me by one of this ways:
+- Telegram - @MDPaul
+- Email - kiiashko.r@gmail.com
+- LinkedIn - ____
+- Facebook - https://www.facebook.com/kiiashko.r/
+
+## License
+
+MIT
+
+**Free Software, Hell Yeah!**
