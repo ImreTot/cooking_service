@@ -17,11 +17,6 @@
 
 The project has been launched and is available at the following link - https://recipesforworld.zapto.org/
 
-## Данные для доступа в админку
-
-- email - admin@admin.com
-- пароль - admin
-
 ## Installation
 
 Feel free to install and explore this project.  
