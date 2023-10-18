@@ -33,7 +33,7 @@ However, you can run only backend by django server.
 At first, create in `backend/` directory virtual environment. 
 >We use `Python3.11`
 ```shell
-python3.11 - m venv .venv
+python3.11 -m venv .venv
 ```
 Then install requirements:
 ```shell
