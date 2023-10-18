@@ -14,6 +14,9 @@
 [![N|Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![N|Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org)
 
+## Description
+Application for publishing recipes. Users can follow authors, create a list of favorites and create a shopping list. The project runs in Docker containers. Web server - Nginx.
+
 ## Installation
 
 Feel free to install and explore this project.  
