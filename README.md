@@ -54,6 +54,9 @@ Here is the variables list:
 - DB_HOST
 - DB_PORT
 
+## API
+In the project root in the folder `docs` there is documentation with a detailed description of all endpoints. Also you can import api specification in Postman or another API platform for building and using APIs.
+
 ## About me
 
 I'm Roman Kiyashko, python developer from south russian city.
