@@ -60,9 +60,8 @@ I'm Roman Kiyashko, python developer from south russian city.
 Also, I'm a journalist. 
 Technology, science, education, music and extreme sports - these are the four foundations of my productive work.  
 You can contact with me by one of this ways:
-- Telegram - @MDPaul
+- Telegram: https://t.me/MDPaul
 - Email - kiiashko.r@gmail.com
-- LinkedIn - ____
 - Facebook - https://www.facebook.com/kiiashko.r/
 
 ## License
