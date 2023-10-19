@@ -57,6 +57,10 @@ Here is the variables list:
 ## API
 In the project root in the folder `docs` there is documentation with a detailed description of all endpoints. Also you can import api specification in Postman or another API platform for building and using APIs.
 
+## Development plans
+- add indexes for models
+- optimize queries
+
 ## About me
 
 I'm Roman Kiyashko, python developer from south russian city.
